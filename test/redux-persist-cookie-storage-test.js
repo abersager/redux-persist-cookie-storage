@@ -25,7 +25,7 @@ describe('CookieStorage', function () {
         var storage = new CookieStorage({ windowRef: window });
 
         storage.setItem('test', { foo: 'bar' }, function () {
-          storage.getAllKeys(function (result) {
+          storage.getAllKeys(function (error, result) {
             expect(result).to.eql(['test'])
             done();
           });
@@ -40,7 +40,7 @@ describe('CookieStorage', function () {
         var storage = new CookieStorage({ windowRef: window });
         storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
-        storage.getItem('test', function (result) {
+        storage.getItem('test', function (error, result) {
           expect(result).to.eql({ foo: 'bar' });
           done();
         });
@@ -79,7 +79,7 @@ describe('CookieStorage', function () {
 
         storage.setItem('test', { foo: 'bar' }, function () {
           storage.removeItem('test', function () {
-            storage.getAllKeys(function (result) {
+            storage.getAllKeys(function (error, result) {
               expect(result).to.eql([]);
               done();
             });
@@ -95,7 +95,7 @@ describe('CookieStorage', function () {
         var storage = new CookieStorage({ windowRef: window });
         storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
-        storage.getAllKeys(function (result) {
+        storage.getAllKeys(function (error, result) {
           expect(result).to.eql(['foo', 'bar']);
           done();
         });

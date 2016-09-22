@@ -17,31 +17,31 @@ CookieStorage.prototype.getItem = function (key, callback) {
     result = JSON.parse(cookie);
   }
 
-  callback(result);
+  callback(null, result);
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
   this.cookies.set(this.keyPrefix + key, JSON.stringify(value));
 
-  this.getAllKeys(function (allKeys) {
+  this.getAllKeys(function (error, allKeys) {
     if (allKeys.indexOf(key) === -1) {
       allKeys.push(key);
       this.cookies.set(this.indexKey, JSON.stringify(allKeys));
     }
-    callback();
+    callback(null);
   }.bind(this));
 }
 
 CookieStorage.prototype.removeItem = function (key, callback) {
   this.cookies.expire(this.keyPrefix + key);
 
-  this.getAllKeys(function (allKeys) {
+  this.getAllKeys(function (error, allKeys) {
     allKeys = allKeys.filter(function (k) {
       return k !== key;
     });
 
     this.cookies.set(this.indexKey, JSON.stringify(allKeys));
-    callback();
+    callback(null);
   }.bind(this));
 }
 
@@ -53,7 +53,7 @@ CookieStorage.prototype.getAllKeys = function (callback) {
     result = JSON.parse(cookie);
   }
 
-  callback(result);
+  callback(null, result);
 }
 
 module.exports = CookieStorage
