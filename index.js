@@ -33,18 +33,11 @@ function CookieStorage(options) {
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
-  var cookie = this.cookies.get(this.keyPrefix + key);
-
-  var result;
-  if (cookie) {
-    result = JSON.parse(cookie);
-  }
-
-  callback(null, result);
+  callback(null, this.cookies.get(this.keyPrefix + key));
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
-  this.cookies.set(this.keyPrefix + key, JSON.stringify(value));
+  this.cookies.set(this.keyPrefix + key, value);
 
   this.getAllKeys(function (error, allKeys) {
     if (allKeys.indexOf(key) === -1) {

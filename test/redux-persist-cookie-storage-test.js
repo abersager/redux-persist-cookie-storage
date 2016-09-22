@@ -13,8 +13,8 @@ describe('CookieStorage', function () {
       withDOM(function (err, window) {
         var storage = new CookieStorage({ windowRef: window });
 
-        storage.setItem('test', { foo: 'bar' }, function () {
-          expect(JSON.parse(storage.cookies.get('reduxPersist_test'))).to.eql({ foo: 'bar' });
+        storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+          expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
           done();
         });
       });
@@ -38,10 +38,10 @@ describe('CookieStorage', function () {
     it('gets an item stored as cookie', function (done) {
       withDOM(function (err, window) {
         var storage = new CookieStorage({ windowRef: window });
-        storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
+        storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
 
         storage.getItem('test', function (error, result) {
-          expect(result).to.eql({ foo: 'bar' });
+          expect(JSON.parse(result)).to.eql({ foo: 'bar' });
           done();
         });
       });
@@ -51,8 +51,8 @@ describe('CookieStorage', function () {
       withDOM(function (err, window) {
         var storage = new CookieStorage({ windowRef: window });
 
-        storage.setItem('test', { foo: 'bar' }, function () {
-          expect(JSON.parse(storage.cookies.get('reduxPersist_test'))).to.eql({ foo: 'bar' });
+        storage.getItem('test', function (error, result) {
+          expect(result).to.eql();
           done();
         });
       });
