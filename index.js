@@ -1,12 +1,35 @@
 var Cookies = require('cookies-js');
 
+function FakeCookieJar(cookies) {
+  this.cookies = cookies || {};
+}
+
+FakeCookieJar.prototype.get = function (key) {
+  return this.cookies[key];
+}
+
+FakeCookieJar.prototype.set = function (key, value) {
+  this.cookies[key] = value;
+}
+
+FakeCookieJar.prototype.expire = function (key) {
+  delete this.cookies[key];
+}
+
+
 function CookieStorage(options) {
   options = options || {};
-  this.windowRef = options.windowRef || window;
+
   this.keyPrefix = options.keyPrefix || 'reduxPersist_';
   this.indexKey = options.indexKey || 'reduxPersistIndex';
 
-  this.cookies = new Cookies(this.windowRef);
+  if (options.windowRef) {
+    this.cookies = Cookies(options.windowRef);
+  } else if (typeof window !== 'undefined') {
+    this.cookies = Cookies;
+  } else {
+    this.cookies = new FakeCookieJar(options.cookies);
+  }
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
