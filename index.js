@@ -1,11 +1,15 @@
 var Cookies = require('cookies-js');
 
 function FakeCookieJar(cookies) {
-  this.cookies = cookies || {};
+  var parsed = {};
+  Object.keys(cookies).forEach(function(key) {
+    parsed[unescape(key)] = cookies[key];
+  })
+  this.cookies = parsed;
 }
 
 FakeCookieJar.prototype.get = function (key) {
-  return this.cookies[key];
+  return this.cookies[key] || null;
 }
 
 FakeCookieJar.prototype.set = function (key, value) {
@@ -20,7 +24,7 @@ FakeCookieJar.prototype.expire = function (key) {
 function CookieStorage(options) {
   options = options || {};
 
-  this.keyPrefix = options.keyPrefix || 'reduxPersist_';
+  this.keyPrefix = options.keyPrefix || '';
   this.indexKey = options.indexKey || 'reduxPersistIndex';
 
   if (options.windowRef) {
