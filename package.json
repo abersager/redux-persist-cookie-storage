@@ -8,6 +8,10 @@
   },
   "author": "Oliver Spindler <os@oliverspindler.com>",
   "license": "MIT",
+  "files": [
+    "src",
+    "index.js"
+  ],
   "devDependencies": {
     "chai": "^3.5.0",
     "jsdom": "^9.5.0",
