@@ -8,21 +8,116 @@ function withDOM (callback) {
 }
 
 describe('CookieStorage', function () {
-  describe('setItem', function () {
-    it('stores an item as a cookie', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+  describe('browser behaviour', function () {
+    describe('setItem', function () {
+      it('stores an item as a cookie', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            done();
+          });
+        });
+      });
+
+      it('updates the list of keys', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+
+          storage.setItem('test', { foo: 'bar' }, function () {
+            storage.getAllKeys(function (error, result) {
+              expect(result).to.eql(['test'])
+              done();
+            });
+          });
+        });
+      });
+    });
+
+    describe('getItem', function () {
+      it('gets an item stored as cookie', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
+
+          storage.getItem('test', function (error, result) {
+            expect(JSON.parse(result)).to.eql({ foo: 'bar' });
+            done();
+          });
+        });
+      });
+
+      it('returns nothing when the item isn\'t available', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+
+          storage.getItem('test', function (error, result) {
+            expect(result).to.eql();
+            done();
+          });
+        });
+      });
+    });
+
+    describe('removeItem', function () {
+      it('removes the item\'s cookie', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
+
+          storage.removeItem('test', function () {
+            expect(storage.cookies.get('reduxPersist_test')).not.to.be.defined;
+            done();
+          });
+        });
+      });
+
+      it('removes the item from the list of keys', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
+
+          storage.setItem('test', { foo: 'bar' }, function () {
+            storage.removeItem('test', function () {
+              storage.getAllKeys(function (error, result) {
+                expect(result).to.eql([]);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+
+    describe('getAllKeys', function () {
+      it('returns a list of persisted keys', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
+
+          storage.getAllKeys(function (error, result) {
+            expect(result).to.eql(['foo', 'bar']);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  describe('server-side behaviour', function () {
+    describe('setItem', function () {
+      it('stores an item as a cookie', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
 
         storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
           expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
           done();
         });
       });
-    });
 
-    it('updates the list of keys', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+      it('updates the list of keys', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
 
         storage.setItem('test', { foo: 'bar' }, function () {
           storage.getAllKeys(function (error, result) {
@@ -32,12 +127,10 @@ describe('CookieStorage', function () {
         });
       });
     });
-  });
 
-  describe('getItem', function () {
-    it('gets an item stored as cookie', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+    describe('getItem', function () {
+      it('gets an item stored as cookie', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
         storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
 
         storage.getItem('test', function (error, result) {
@@ -45,11 +138,9 @@ describe('CookieStorage', function () {
           done();
         });
       });
-    });
 
-    it('returns nothing when the item isn\'t available', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+      it('returns nothing when the item isn\'t available', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
 
         storage.getItem('test', function (error, result) {
           expect(result).to.eql();
@@ -57,12 +148,10 @@ describe('CookieStorage', function () {
         });
       });
     });
-  });
 
-  describe('removeItem', function () {
-    it('removes the item\'s cookie', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+    describe('removeItem', function () {
+      it('removes the item\'s cookie', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
         storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
         storage.removeItem('test', function () {
@@ -70,11 +159,9 @@ describe('CookieStorage', function () {
           done();
         });
       });
-    });
 
-    it('removes the item from the list of keys', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+      it('removes the item from the list of keys', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
         storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
         storage.setItem('test', { foo: 'bar' }, function () {
@@ -87,12 +174,10 @@ describe('CookieStorage', function () {
         });
       });
     });
-  });
 
-  describe('getAllKeys', function () {
-    it('returns a list of persisted keys', function (done) {
-      withDOM(function (err, window) {
-        var storage = new CookieStorage({ windowRef: window });
+    describe('getAllKeys', function () {
+      it('returns a list of persisted keys', function (done) {
+        var storage = new CookieStorage({ cookies: { foo: "bar" } });
         storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
         storage.getAllKeys(function (error, result) {

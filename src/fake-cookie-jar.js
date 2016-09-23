@@ -7,7 +7,7 @@ function FakeCookieJar(cookies) {
 }
 
 FakeCookieJar.prototype.get = function (key) {
-  return this.cookies[key] || null;
+  return this.cookies[key];
 }
 
 FakeCookieJar.prototype.set = function (key, value) {
