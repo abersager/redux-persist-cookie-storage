@@ -14,7 +14,6 @@
     "mocha": "^3.0.2"
   },
   "dependencies": {
-    "cookies-js": "^1.2.2",
-    "js-cookie": "^2.1.3"
+    "cookies-js": "^1.2.2"
   }
 }
