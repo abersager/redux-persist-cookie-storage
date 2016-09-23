@@ -8,6 +8,7 @@
   },
   "author": "Oliver Spindler <os@oliverspindler.com>",
   "license": "MIT",
+  "repository": "abersager/redux-persist-cookie-storage",
   "files": [
     "src",
     "index.js"
