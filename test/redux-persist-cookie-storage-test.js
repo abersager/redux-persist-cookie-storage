@@ -48,12 +48,12 @@ describe('CookieStorage', function () {
         });
       });
 
-      it('returns nothing when the item isn\'t available', function (done) {
+      it('returns null when the item isn\'t available', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window });
 
           storage.getItem('test', function (error, result) {
-            expect(result).to.eql();
+            expect(JSON.parse(result)).to.be.null;
             done();
           });
         });
@@ -139,11 +139,11 @@ describe('CookieStorage', function () {
         });
       });
 
-      it('returns nothing when the item isn\'t available', function (done) {
+      it('returns null when the item isn\'t available', function (done) {
         var storage = new CookieStorage({ cookies: { foo: "bar" } });
 
         storage.getItem('test', function (error, result) {
-          expect(result).to.eql();
+          expect(JSON.parse(result)).to.be.null;
           done();
         });
       });
