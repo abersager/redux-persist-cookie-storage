@@ -6,6 +6,7 @@ function CookieStorage(options) {
 
   this.keyPrefix = options.keyPrefix || '';
   this.indexKey = options.indexKey || 'reduxPersistIndex';
+  this.expiration = options.expiration || null;
 
   if (options.windowRef) {
     this.cookies = Cookies(options.windowRef);
@@ -21,12 +22,27 @@ CookieStorage.prototype.getItem = function (key, callback) {
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
-  this.cookies.set(this.keyPrefix + key, value);
+  var expiration = null;
+
+  if (this.expiration !== null) {
+    var expires = this.expiration.default;
+
+    for (var n in this.expiration) {
+      if (key === n) {
+        expires = this.expiration[n];
+      }
+      expiration = {
+        expires
+      };
+    }
+  }
+
+  this.cookies.set(this.keyPrefix + key, value, expiration);
 
   this.getAllKeys(function (error, allKeys) {
     if (allKeys.indexOf(key) === -1) {
       allKeys.push(key);
-      this.cookies.set(this.indexKey, JSON.stringify(allKeys));
+      this.cookies.set(this.indexKey, JSON.stringify(allKeys), expiration);
     }
     callback(null);
   }.bind(this));
