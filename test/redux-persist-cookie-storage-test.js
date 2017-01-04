@@ -34,83 +34,83 @@ describe('CookieStorage', function () {
         });
       });
 
-      it("stores an item as a cookie with expiration: 1 sec", function (done) {
+      it('stores an item as a cookie with expiration: 1 sec', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              "default": null,
-              "test": 1
+              'default': null,
+              'test': 1
             }
           });
 
-          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             setTimeout(function() {
-              expect(storage.cookies.get("test")).to.be.an("undefined");
+              expect(storage.cookies.get('test')).to.be.an('undefined');
               done();
             }, 2e3);
           });
         });
       });
 
-      it("stores an item as a cookie with default expiration: 1 sec", function (done) {
+      it('stores an item as a cookie with default expiration: 1 sec', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              "default": 1
+              'default': 1
             }
           });
 
-          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             setTimeout(function() {
-              expect(storage.cookies.get("test")).to.be.an("undefined");
+              expect(storage.cookies.get('test')).to.be.an('undefined');
               done();
             }, 2e3);
           });
         });
       });
 
-      it("stores an item as a session cookie", function (done) {
+      it('stores an item as a session cookie', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              "default": null,
-              "test": null
+              'default': null,
+              'test': null
             }
           });
 
-          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             setTimeout(function() {
-              expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+              expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
               done();
             }, 2e3);
           });
         });
       });
 
-      it("stores an item as a session cookie with `default` parameter", function (done) {
+      it('stores an item as a session cookie with `default` parameter', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              "default": null
+              'default': null
             }
           });
 
-          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             setTimeout(function() {
-              expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+              expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
               done();
             }, 2e3);
           });
         });
       });
 
-      it("the index key should always use the default expiration", function(done){
+      it('the index key should always use the default expiration', function(done){
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              "default": 1,
-              "test": 2
+              'default': 1,
+              'test': 2
             }
           });
 
-          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             setTimeout(function() {
-              expect(storage.cookies.get("reduxPersistIndex")).to.be.an("undefined");
+              expect(storage.cookies.get('reduxPersistIndex')).to.be.an('undefined');
               done();
             }, 2e3);
           });
@@ -193,7 +193,7 @@ describe('CookieStorage', function () {
   describe('server-side behaviour', function () {
     describe('setItem', function () {
       it('stores an item as a cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
 
         storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
           expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
@@ -202,7 +202,7 @@ describe('CookieStorage', function () {
       });
 
       it('updates the list of keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
 
         storage.setItem('test', { foo: 'bar' }, function () {
           storage.getAllKeys(function (error, result) {
@@ -216,7 +216,7 @@ describe('CookieStorage', function () {
 
     describe('getItem', function () {
       it('gets an item stored as cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
         storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
 
         storage.getItem('test', function (error, result) {
@@ -226,7 +226,7 @@ describe('CookieStorage', function () {
       });
 
       it('returns null when the item isn\'t available', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
 
         storage.getItem('test', function (error, result) {
           expect(JSON.parse(result)).to.be.null;
@@ -237,7 +237,7 @@ describe('CookieStorage', function () {
 
     describe('removeItem', function () {
       it('removes the item\'s cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
         storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
         storage.removeItem('test', function () {
@@ -247,7 +247,7 @@ describe('CookieStorage', function () {
       });
 
       it('removes the item from the list of keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
         storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
         storage.setItem('test', { foo: 'bar' }, function () {
@@ -263,7 +263,7 @@ describe('CookieStorage', function () {
 
     describe('getAllKeys', function () {
       it('returns a list of persisted keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: "bar" } });
+        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
         storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
         storage.getAllKeys(function (error, result) {
