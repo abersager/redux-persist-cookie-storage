@@ -43,7 +43,6 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
-            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
               expect(storage.cookies.get("test")).to.be.an("undefined");
               done();
@@ -60,7 +59,6 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
-            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
               expect(storage.cookies.get("test")).to.be.an("undefined");
               done();
@@ -78,7 +76,6 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
-            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
               expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
               done();
@@ -95,7 +92,6 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
-            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
               expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
               done();
@@ -104,7 +100,7 @@ describe('CookieStorage', function () {
         });
       });
 
-      /*it("the index key should always use the default expiration", function(done){
+      it("the index key should always use the default expiration", function(done){
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
               "default": 1,
@@ -113,16 +109,14 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
-            expect(JSON.parse(storage.cookies.get("reduxPersistIndex"))).to.eql(["test"]);
             setTimeout(function() {
-              console.log(JSON.parse(storage.cookies.get("reduxPersistIndex")))
-              expect(JSON.parse(storage.cookies.get("reduxPersistIndex"))).to.be.an("undefined");
+              expect(storage.cookies.get("reduxPersistIndex")).to.be.an("undefined");
               done();
-            }, 5e3);
+            }, 2e3);
           });
 
         });
-      });*/
+      });
 
     });
 
