@@ -23,7 +23,7 @@ persistStore(store, { storage: new CookieStorage() })
 persistStore(store, { storage: new CookieStorage({
     expiration: {
       'default': null,
-      'cookieName': 5*1e3 // 5sec
+      'reduxPersist:storeKey': 5
     }
   })
 })
@@ -43,16 +43,6 @@ app.use(cookieParser())
 app.use((req, res) => {
   const store = createStore(reducer, undefined, autoRehydrate())
   persistStore(store, { storage: new CookieStorage({ cookies: req.cookies }) })
-  ...
-  // or with expiration date
-  persistStore(store, { storage: new CookieStorage({
-      cookies: req.cookies,
-      expiration: {
-          'default': null,
-          'cookieName': 5*1e3 // 5sec
-      }
-    })
-  })
 })
 ```
 

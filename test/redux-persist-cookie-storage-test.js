@@ -34,40 +34,95 @@ describe('CookieStorage', function () {
         });
       });
 
-      it('stores an item as a cookie with expiration: 1 sec', function (done) {
+      it("stores an item as a cookie with expiration: 1 sec", function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': null,
-              'test': 1
+              "default": null,
+              "test": 1
             }
           });
 
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
-              expect(storage.cookies.get('test')).to.be.an('undefined');
+              expect(storage.cookies.get("test")).to.be.an("undefined");
               done();
             }, 2e3);
           });
         });
       });
 
-      it('stores an item as a cookie with default expiration: 1 sec', function (done) {
+      it("stores an item as a cookie with default expiration: 1 sec", function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': 1,
+              "default": 1
             }
           });
 
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
             setTimeout(function() {
-              expect(storage.cookies.get('test')).to.be.an('undefined');
+              expect(storage.cookies.get("test")).to.be.an("undefined");
               done();
             }, 2e3);
           });
         });
       });
+
+      it("stores an item as a session cookie", function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              "default": null,
+              "test": null
+            }
+          });
+
+          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+            setTimeout(function() {
+              expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+              done();
+            }, 2e3);
+          });
+        });
+      });
+
+      it("stores an item as a session cookie with `default` parameter", function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              "default": null
+            }
+          });
+
+          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+            expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+            setTimeout(function() {
+              expect(JSON.parse(storage.cookies.get("test"))).to.eql({ foo: "bar" });
+              done();
+            }, 2e3);
+          });
+        });
+      });
+
+      /*it("the index key should always use the default expiration", function(done){
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              "default": 1,
+              "test": 2
+            }
+          });
+
+          storage.setItem("test", JSON.stringify({ foo: "bar" }), function () {
+            expect(JSON.parse(storage.cookies.get("reduxPersistIndex"))).to.eql(["test"]);
+            setTimeout(function() {
+              console.log(JSON.parse(storage.cookies.get("reduxPersistIndex")))
+              expect(JSON.parse(storage.cookies.get("reduxPersistIndex"))).to.be.an("undefined");
+              done();
+            }, 5e3);
+          });
+
+        });
+      });*/
 
     });
 
@@ -160,41 +215,6 @@ describe('CookieStorage', function () {
             expect(result).to.eql(['test'])
             done();
           });
-        });
-      });
-
-      it('stores an item as a cookie with expiration: 1 sec', function (done) {
-        var payload = { foo: 'bar' },
-            storage = new CookieStorage({ cookies: payload, expiration: {
-            'default': null,
-            'test': 1
-          }
-        });
-
-        storage.setItem('test', JSON.stringify(payload), function () {
-          expect(JSON.parse(storage.cookies.get('test'))).to.eql(payload);
-
-          setTimeout(function() {
-            expect(storage.cookies.get('test')).to.be.an('undefined');
-            done();
-          }, 2e3);
-        });
-      });
-
-      it('stores an item as a cookie with default expiration: 1 sec', function (done) {
-        var payload = { foo: 'bar' },
-            storage = new CookieStorage({ cookies: payload, expiration: {
-            'default': 1
-          }
-        });
-
-        storage.setItem('test', JSON.stringify(payload), function () {
-          expect(JSON.parse(storage.cookies.get('test'))).to.eql(payload);
-
-          setTimeout(function() {
-            expect(storage.cookies.get('test')).to.be.an('undefined');
-            done();
-          }, 2e3);
         });
       });
 

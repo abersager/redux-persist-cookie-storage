@@ -22,27 +22,31 @@ CookieStorage.prototype.getItem = function (key, callback) {
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
-  var expiration = null;
+  var options = null,
+      defaultOptions = null;
 
   if (this.expiration !== null) {
-    var expires = this.expiration.default;
+    var defaultExpiration = this.expiration.default || null,
+        expires = defaultExpiration;
+
+    defaultOptions = defaultExpiration;
 
     for (var n in this.expiration) {
       if (key === n) {
         expires = this.expiration[n];
       }
-      expiration = {
+      options = {
         expires
       };
     }
   }
 
-  this.cookies.set(this.keyPrefix + key, value, expiration);
+  this.cookies.set(this.keyPrefix + key, value, options);
 
   this.getAllKeys(function (error, allKeys) {
     if (allKeys.indexOf(key) === -1) {
       allKeys.push(key);
-      this.cookies.set(this.indexKey, JSON.stringify(allKeys), expiration);
+      this.cookies.set(this.indexKey, JSON.stringify(allKeys), defaultOptions);
     }
     callback(null);
   }.bind(this));
