@@ -22,22 +22,12 @@ CookieStorage.prototype.getItem = function (key, callback) {
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
-  var options = null,
-      defaultOptions = null;
+  var options, defaultOptions;
 
   if (this.expiration !== null) {
-    var defaultExpiration = this.expiration.default || null,
-        expires = defaultExpiration;
-
-    defaultOptions = defaultExpiration;
-
-    for (var n in this.expiration) {
-      if (key === n) {
-        expires = this.expiration[n];
-      }
-      options = {
-        expires
-      };
+    defaultOptions = this.expiration.default;
+    options = {
+      expires: this.expiration[key] || defaultOptions
     }
   }
 
