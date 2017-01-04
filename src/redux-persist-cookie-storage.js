@@ -26,7 +26,7 @@ CookieStorage.prototype.setItem = function (key, value, callback) {
       defaultOptions = null;
 
   if (this.expiration !== null) {
-    var defaultExpiration = this.expiration.default || null,
+    var defaultExpiration = this.expiration.default || null,
         expires = defaultExpiration;
 
     defaultOptions = defaultExpiration;
