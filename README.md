@@ -17,17 +17,29 @@ import { persistStore, autoRehydrate } from 'redux-persist'
 import CookieStorage from 'redux-persist-cookie-storage'
 
 const store = createStore(reducer, undefined, autoRehydrate())
+
+// By default, session cookies are used
 persistStore(store, { storage: new CookieStorage() })
-...
-// or with expiration date
+
+// Expiration time can be set via options
 persistStore(store, { storage: new CookieStorage({
     expiration: {
-      'default': null,
-      'reduxPersist:storeKey': 5
+      'default': 365 * 86400 // Cookies expire after one year
+    }
+  })
+})
+
+// Default expiration time can be overridden for specific parts of the store:
+persistStore(store, { storage: new CookieStorage({
+    expiration: {
+      'default': null, // Session cookies used by default
+      'storeKey': 600 // State in key `storeKey` expires after 10 minutes
     }
   })
 })
 ```
+
+
 
 ### Server
 
@@ -44,7 +56,10 @@ app.use((req, res) => {
   const store = createStore(reducer, undefined, autoRehydrate())
   persistStore(store, { storage: new CookieStorage({ cookies: req.cookies }) })
 })
+
 ```
+
+N.B.: Custom expiration times are not supported server-side at the moment.
 
 ## Development
 
