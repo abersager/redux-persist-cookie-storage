@@ -3,22 +3,119 @@ var jsdom = require('jsdom');
 
 var CookieStorage = require('../index');
 
-function withDOM (callback) {
-  jsdom.env({ html: '', done: callback });
+function withDOM (callback, options) {
+  options = options || {};
+  options.html = '';
+  options.done = callback;
+
+  jsdom.env(options);
 }
 
 describe('CookieStorage', function () {
   describe('browser behaviour', function () {
     describe('setItem', function () {
-      it('stores an item as a cookie', function (done) {
+      it('stores item as session cookies by default', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
         withDOM(function (err, window) {
-          var storage = new CookieStorage({ windowRef: window });
+          var storage = new CookieStorage({ windowRef: window, expiration: { default: null} });
 
           storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].test.expires).to.eql('Infinity')
             done();
           });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item as a cookie with expiration time', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              'default': 1
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].test.expires).not.to.eql('Infinity')
+
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 2e3);
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item with custom expiration overriding default time', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              'default': 3,
+              'test': 1
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 1e3);
+          });
         });
+      });
+
+      it('stores an item with custom expiration overriding default session option', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+              'default': null,
+              'timed': 1
+            }
+          });
+
+          storage.setItem('timed', JSON.stringify({ foo: 'bar' }), function () {
+            storage.setItem('session', JSON.stringify({ foo: 'bar' }), function () {
+              expect(JSON.parse(storage.cookies.get('session'))).to.eql({ foo: 'bar' });
+              expect(cookieJar.store.idx.blank['/'].session.expires).to.eql('Infinity')
+
+              expect(JSON.parse(storage.cookies.get('timed'))).to.eql({ foo: 'bar' });
+              expect(cookieJar.store.idx.blank['/'].timed.expires).not.to.eql('Infinity')
+
+              setTimeout(function() {
+                expect(JSON.parse(storage.cookies.get('session'))).to.eql({ foo: 'bar' });
+                expect(storage.cookies.get('timed')).to.be.undefined;
+                done();
+              }, 1e3);
+            });
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item as a session cookie overriding default time', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, expiration: {
+            'default': 3,
+            'session': null
+          }});
+
+          storage.setItem('timed', JSON.stringify({ foo: 'bar' }), function () {
+            storage.setItem('session', JSON.stringify({ foo: 'bar' }), function () {
+              expect(JSON.parse(storage.cookies.get('session'))).to.eql({ foo: 'bar' });
+              expect(cookieJar.store.idx.blank['/'].session.expires).to.eql('Infinity')
+
+              expect(JSON.parse(storage.cookies.get('timed'))).to.eql({ foo: 'bar' });
+              expect(cookieJar.store.idx.blank['/'].timed.expires).not.to.eql('Infinity')
+              done();
+            });
+          });
+        }, { cookieJar: cookieJar });
       });
 
       it('updates the list of keys', function (done) {
@@ -34,87 +131,26 @@ describe('CookieStorage', function () {
         });
       });
 
-      it('stores an item as a cookie with expiration: 1 sec', function (done) {
-        withDOM(function (err, window) {
-          var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': null,
-              'test': 1
-            }
-          });
-
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            setTimeout(function() {
-              expect(storage.cookies.get('test')).to.be.an('undefined');
-              done();
-            }, 2e3);
-          });
-        });
-      });
-
-      it('stores an item as a cookie with default expiration: 1 sec', function (done) {
-        withDOM(function (err, window) {
-          var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': 1
-            }
-          });
-
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            setTimeout(function() {
-              expect(storage.cookies.get('test')).to.be.an('undefined');
-              done();
-            }, 2e3);
-          });
-        });
-      });
-
-      it('stores an item as a session cookie', function (done) {
-        withDOM(function (err, window) {
-          var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': null,
-              'test': null
-            }
-          });
-
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            setTimeout(function() {
-              expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
-              done();
-            }, 2e3);
-          });
-        });
-      });
-
-      it('stores an item as a session cookie with `default` parameter', function (done) {
-        withDOM(function (err, window) {
-          var storage = new CookieStorage({ windowRef: window, expiration: {
-              'default': null
-            }
-          });
-
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            setTimeout(function() {
-              expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
-              done();
-            }, 2e3);
-          });
-        });
-      });
-
-      it('the index key should always use the default expiration', function(done){
+      it('stores list of keys with expiration time', function(done){
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
               'default': 1,
-              'test': 2
+              'test': 3
             }
           });
 
-          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-            setTimeout(function() {
-              expect(storage.cookies.get('reduxPersistIndex')).to.be.an('undefined');
-              done();
-            }, 2e3);
-          });
+          storage.setItem('test', { foo: 'bar' }, function () {
+            storage.getAllKeys(function (error, result) {
+              expect(result).to.eql(['test'])
 
+              setTimeout(function() {
+                storage.getAllKeys(function (error, result) {
+                  expect(result).to.eql([])
+                  done();
+                });
+              }, 2e3);
+            });
+          });
         });
       });
 
