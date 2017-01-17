@@ -1,7 +1,13 @@
-var expect = require('chai').expect;
+var chai = require('chai');
+var spies = require('chai-spies');
+chai.use(spies)
+
+var expect = chai.expect;
+
 var jsdom = require('jsdom');
 
 var CookieStorage = require('../index');
+var FakeCookieJar = require('../src/fake-cookie-jar');
 
 function withDOM (callback, options) {
   options = options || {};
@@ -9,6 +15,10 @@ function withDOM (callback, options) {
   options.done = callback;
 
   jsdom.env(options);
+}
+
+function isSpy(cookies) {
+  return cookies && typeof cookies['get'] === 'function' && '__spy' in cookies['get']
 }
 
 describe('CookieStorage', function () {
@@ -227,86 +237,138 @@ describe('CookieStorage', function () {
   });
 
   describe('server-side behaviour', function () {
-    describe('setItem', function () {
-      it('stores an item as a cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
+    var cookies;
 
-        storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
-          expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
-          done();
+    var sharedBehavior = function() {
+      describe('setItem', function () {
+        it('stores an item as a cookie', function (done) {
+          var storage = new CookieStorage({ cookies });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            if (isSpy(cookies)) {
+              expect(cookies.set).to.have.been.called;
+              expect(cookies.get).to.have.been.called;
+            }
+            done();
+          });
         });
+
+        it('updates the list of keys', function (done) {
+          var storage = new CookieStorage({ cookies });
+
+          storage.setItem('test', { foo: 'bar' }, function () {
+            storage.getAllKeys(function (error, result) {
+              expect(result).to.eql(['test'])
+              if (isSpy(cookies)) {
+                expect(cookies.set).to.have.been.called;
+                expect(cookies.get).to.have.been.called;
+              }
+              done();
+            });
+          });
+        });
+
       });
 
-      it('updates the list of keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
+      describe('getItem', function () {
+        it('gets an item stored as cookie', function (done) {
+          var storage = new CookieStorage({ cookies });
+          storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
 
-        storage.setItem('test', { foo: 'bar' }, function () {
-          storage.getAllKeys(function (error, result) {
-            expect(result).to.eql(['test'])
+          storage.getItem('test', function (error, result) {
+            expect(JSON.parse(result)).to.eql({ foo: 'bar' });
+            if (isSpy(cookies)) {
+              expect(cookies.set).to.have.been.called;
+              expect(cookies.get).to.have.been.called;
+            }
+            done();
+          });
+        });
+
+        it('returns null when the item isn\'t available', function (done) {
+          var storage = new CookieStorage({ cookies });
+
+          storage.getItem('test', function (error, result) {
+            expect(JSON.parse(result)).to.be.null;
+            if (isSpy(cookies)) {
+              expect(cookies.get).to.have.been.called;
+            }
             done();
           });
         });
       });
 
-    });
+      describe('removeItem', function () {
+        it('removes the item\'s cookie', function (done) {
+          var storage = new CookieStorage({ cookies });
+          storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
-    describe('getItem', function () {
-      it('gets an item stored as cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
-        storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
-
-        storage.getItem('test', function (error, result) {
-          expect(JSON.parse(result)).to.eql({ foo: 'bar' });
-          done();
-        });
-      });
-
-      it('returns null when the item isn\'t available', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
-
-        storage.getItem('test', function (error, result) {
-          expect(JSON.parse(result)).to.be.null;
-          done();
-        });
-      });
-    });
-
-    describe('removeItem', function () {
-      it('removes the item\'s cookie', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
-        storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
-
-        storage.removeItem('test', function () {
-          expect(storage.cookies.get('reduxPersist_test')).not.to.be.defined;
-          done();
-        });
-      });
-
-      it('removes the item from the list of keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
-        storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
-
-        storage.setItem('test', { foo: 'bar' }, function () {
           storage.removeItem('test', function () {
-            storage.getAllKeys(function (error, result) {
-              expect(result).to.eql([]);
-              done();
+            expect(storage.cookies.get('reduxPersist_test')).not.to.be.defined;
+            if (isSpy(cookies)) {
+              expect(cookies.set).to.have.been.called;
+              expect(cookies.get).to.have.been.called;
+              expect(cookies.expire).to.have.been.called;
+            }
+
+            done();
+          });
+        });
+
+        it('removes the item from the list of keys', function (done) {
+          var storage = new CookieStorage({ cookies });
+          storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
+
+          storage.setItem('test', { foo: 'bar' }, function () {
+            storage.removeItem('test', function () {
+              storage.getAllKeys(function (error, result) {
+                expect(result).to.eql([]);
+                if (isSpy(cookies)) {
+                  expect(cookies.set).to.have.been.called;
+                  expect(cookies.get).to.have.been.called;
+                  expect(cookies.expire).to.have.been.called;
+                }
+                done();
+              });
             });
           });
         });
       });
-    });
+      describe('getAllKeys', function () {
+        it('returns a list of persisted keys', function (done) {
+          var storage = new CookieStorage({ cookies });
+          storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
-    describe('getAllKeys', function () {
-      it('returns a list of persisted keys', function (done) {
-        var storage = new CookieStorage({ cookies: { foo: 'bar' } });
-        storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
+          storage.getAllKeys(function (error, result) {
+            expect(result).to.eql(['foo', 'bar']);
+            if (isSpy(cookies)) {
+              expect(cookies.set).to.have.been.called;
+              expect(cookies.get).to.have.been.called;
+            }
 
-        storage.getAllKeys(function (error, result) {
-          expect(result).to.eql(['foo', 'bar']);
-          done();
+            done();
+          });
         });
       });
+    }
+
+    context('with cookie object', function() {
+      beforeEach(function() {
+        cookies = { foo: 'bar' }
+      });
+      sharedBehavior()
     });
+
+    context('with FakeCookieJar', function() {
+      beforeEach(function() {
+        cookies = new FakeCookieJar({ foo: 'bar' });
+        chai.spy.on(cookies, 'get')
+        chai.spy.on(cookies, 'set')
+        chai.spy.on(cookies, 'expire')
+      });
+      sharedBehavior()
+    });
+
   });
 });
