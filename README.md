@@ -39,11 +39,9 @@ persistStore(store, { storage: new CookieStorage({
 })
 ```
 
-
-
 ### Server
-
 ```js
+// Read-only mode: Use plain object output of cookie parser
 import { persistStore, autoRehydrate } from 'redux-persist'
 import CookieStorage from 'redux-persist-cookie-storage'
 import cookieParser from 'cookie-parser'
@@ -54,11 +52,26 @@ app.use(cookieParser())
 
 app.use((req, res) => {
   const store = createStore(reducer, undefined, autoRehydrate())
-  persistStore(store, { storage: new CookieStorage({ cookies: req.cookies }) })
+  const cookies = req.cookies
+  persistStore(store, { storage: new CookieStorage({ cookies }) })
+})
+
+// Read-write mode: Use actual cookie jar implementation
+import { persistStore, autoRehydrate } from 'redux-persist'
+import CookieStorage from 'redux-persist-cookie-storage'
+import Cookies from 'cookies'
+
+const app = new Express()
+
+app.use(Cookies.express())
+
+app.use((req, res) => {
+  const store = createStore(reducer, undefined, autoRehydrate())
+  const cookies = new Cookies(req, res)
+  persistStore(store, { storage: new CookieStorage({ cookies }) })
 })
 
 ```
-
 N.B.: Custom expiration times are not supported server-side at the moment.
 
 ## Development

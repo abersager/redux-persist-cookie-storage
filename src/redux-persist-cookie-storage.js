@@ -15,8 +15,12 @@ function CookieStorage(options) {
     this.cookies = Cookies(options.windowRef);
   } else if (typeof window !== 'undefined') {
     this.cookies = Cookies;
-  } else {
-    this.cookies = new FakeCookieJar(options.cookies);
+  } else if (options.cookies) {
+    if ('get' in options.cookies && 'set' in options.cookies && 'expire' in options.cookies) {
+      this.cookies = options.cookies
+    } else {
+      this.cookies = new FakeCookieJar(options.cookies);
+    }
   }
 }
 
