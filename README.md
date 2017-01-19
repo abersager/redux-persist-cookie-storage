@@ -21,20 +21,33 @@ const store = createStore(reducer, undefined, autoRehydrate())
 // By default, session cookies are used
 persistStore(store, { storage: new CookieStorage() })
 
-// Expiration time can be set via options
+// Expiration time and maxAge can be set via options
+
+const expires = new Date()
+expires.setFullYear(expires.getFullYear() + 1)
+
 persistStore(store, { storage: new CookieStorage({
     expiration: {
+      'default': expires, // Cookies expire one year from when the above code runs
+    },
+    maxAge: {
       'default': 365 * 86400 // Cookies expire after one year
-    }
+    },
   })
 })
 
-// Default expiration time can be overridden for specific parts of the store:
+// Default expiration and maxAge time can be overridden for specific parts of the store:
+const expires = new Date()
+expires.setFullYear(expires.getFullYear() + 1)
+
 persistStore(store, { storage: new CookieStorage({
     expiration: {
       'default': null, // Session cookies used by default
+      'storeKey': expires // State in key `storeKey` expires in one year from when the above code runs
+    },
+    maxAge: {
       'storeKey': 600 // State in key `storeKey` expires after 10 minutes
-    }
+    },
   })
 })
 ```
