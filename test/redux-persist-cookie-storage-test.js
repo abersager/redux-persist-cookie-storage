@@ -59,6 +59,29 @@ describe('CookieStorage', function () {
         }, { cookieJar: cookieJar });
       });
 
+      // tough-cookie doesn't seem to expose/support maxAge the way jsdom
+      // is constructing the cookie jar, hence these tests are replicated below
+      // in a different way. at some point these might work though?
+      xit('stores an item as a cookie with a max age', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, maxAge: {
+              'default': 1
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].test.maxAge).to.eql(1)
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 2e3);
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+
       it('stores an item with custom expiration overriding default time', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window, expiration: {
@@ -74,6 +97,26 @@ describe('CookieStorage', function () {
               expect(storage.cookies.get('test')).to.be.undefined;
               done();
             }, 1e3);
+          });
+        });
+      });
+
+      // see comment at the other xit above
+      xit('stores an item with custom expiration overriding default time', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, maxAge: {
+              'default': 3,
+              'test': 1,
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].test.maxAge).to.eql(1)
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 2e3);
           });
         });
       });
@@ -237,13 +280,16 @@ describe('CookieStorage', function () {
   });
 
   describe('server-side behaviour', function () {
-    var cookies;
+    var cookies, storage
 
     var sharedBehavior = function() {
+
+      beforeEach(function() {
+        storage = new CookieStorage({ cookies });
+      })
+
       describe('setItem', function () {
         it('stores an item as a cookie', function (done) {
-          var storage = new CookieStorage({ cookies });
-
           storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
             if (isSpy(cookies)) {
@@ -255,8 +301,6 @@ describe('CookieStorage', function () {
         });
 
         it('updates the list of keys', function (done) {
-          var storage = new CookieStorage({ cookies });
-
           storage.setItem('test', { foo: 'bar' }, function () {
             storage.getAllKeys(function (error, result) {
               expect(result).to.eql(['test'])
@@ -273,7 +317,6 @@ describe('CookieStorage', function () {
 
       describe('getItem', function () {
         it('gets an item stored as cookie', function (done) {
-          var storage = new CookieStorage({ cookies });
           storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
 
           storage.getItem('test', function (error, result) {
@@ -287,8 +330,6 @@ describe('CookieStorage', function () {
         });
 
         it('returns null when the item isn\'t available', function (done) {
-          var storage = new CookieStorage({ cookies });
-
           storage.getItem('test', function (error, result) {
             expect(JSON.parse(result)).to.be.null;
             if (isSpy(cookies)) {
@@ -301,7 +342,6 @@ describe('CookieStorage', function () {
 
       describe('removeItem', function () {
         it('removes the item\'s cookie', function (done) {
-          var storage = new CookieStorage({ cookies });
           storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
           storage.removeItem('test', function () {
@@ -317,7 +357,6 @@ describe('CookieStorage', function () {
         });
 
         it('removes the item from the list of keys', function (done) {
-          var storage = new CookieStorage({ cookies });
           storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
 
           storage.setItem('test', { foo: 'bar' }, function () {
@@ -337,7 +376,6 @@ describe('CookieStorage', function () {
       });
       describe('getAllKeys', function () {
         it('returns a list of persisted keys', function (done) {
-          var storage = new CookieStorage({ cookies });
           storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
           storage.getAllKeys(function (error, result) {
@@ -368,7 +406,20 @@ describe('CookieStorage', function () {
         chai.spy.on(cookies, 'expire')
       });
       sharedBehavior()
-    });
 
+      it('stores an item as a cookie with a max age', function() {
+        storage = new CookieStorage({ cookies, maxAge: { default: 60 } });
+        storage.setItem('test', JSON.stringify({ foo: 'bar' }), function() {
+          expect(cookies.set).to.have.been.called.with('test', JSON.stringify({ foo: 'bar' }), { maxAge: 60})
+        })
+      });
+
+      it('stores an item with custom maxAge overriding default time', function() {
+        storage = new CookieStorage({ cookies, maxAge: { default: 30, test: 60 } });
+        storage.setItem('test', JSON.stringify({ foo: 'bar' }), function() {
+          expect(cookies.set).to.have.been.called.with('test', JSON.stringify({ foo: 'bar' }), { maxAge: 60})
+        })
+      });
+    });
   });
 });

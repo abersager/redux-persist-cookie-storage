@@ -3,12 +3,16 @@ var FakeCookieJar = require('./fake-cookie-jar');
 
 function CookieStorage(options) {
   options = options || {};
-
   this.keyPrefix = options.keyPrefix || '';
   this.indexKey = options.indexKey || 'reduxPersistIndex';
   this.expiration = options.expiration || {};
   if (!this.expiration.default) {
     this.expiration.default = null;
+  }
+
+  this.maxAge = options.maxAge || {};
+  if (!this.maxAge.default) {
+    this.maxAge.default = null;
   }
 
   if (options.windowRef) {
@@ -31,12 +35,22 @@ CookieStorage.prototype.getItem = function (key, callback) {
 CookieStorage.prototype.setItem = function (key, value, callback) {
   var options = {};
 
+  // handle expires
   var expires = this.expiration.default;
   if (typeof this.expiration[key] !== 'undefined') {
     expires = this.expiration[key]
   }
   if (expires) {
-    options["expires"] = expires;
+    options.expires = expires;
+  }
+
+  // handle maxAge
+  var maxAge = this.maxAge.default;
+  if (typeof this.maxAge[key] !== 'undefined') {
+    maxAge = this.maxAge[key]
+  }
+  if (maxAge) {
+    options.maxAge = maxAge;
   }
 
   this.cookies.set(this.keyPrefix + key, value, options);
@@ -45,7 +59,10 @@ CookieStorage.prototype.setItem = function (key, value, callback) {
 
   var indexOptions = {};
   if (this.expiration.default) {
-    indexOptions["expires"] = this.expiration.default;
+    indexOptions.expires = this.expiration.default;
+  }
+  if (this.maxAge.default) {
+    indexOptions.maxAge = this.maxAge.default;
   }
 
   this.getAllKeys(function (error, allKeys) {
