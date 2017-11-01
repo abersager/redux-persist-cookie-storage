@@ -54,7 +54,7 @@ describe('CookieStorage', function () {
             setTimeout(function() {
               expect(storage.cookies.get('test')).to.be.undefined;
               done();
-            }, 2e3);
+            }, 1e3);
           });
         }, { cookieJar: cookieJar });
       });
@@ -133,9 +133,9 @@ describe('CookieStorage', function () {
           var storage = new CookieStorage({ windowRef: window });
 
           storage.setItem('test', { foo: 'bar' }, function () {
-            storage.getAllKeys(function (error, result) {
-              expect(result).to.eql(['test'])
-              done();
+            storage.getAllKeys().then(function(result) {
+                expect(result).to.eql(['test'])
+                done()
             });
           });
         });
@@ -150,15 +150,15 @@ describe('CookieStorage', function () {
           });
 
           storage.setItem('test', { foo: 'bar' }, function () {
-            storage.getAllKeys(function (error, result) {
+            storage.getAllKeys().then(function (result) {
               expect(result).to.eql(['test'])
 
               setTimeout(function() {
-                storage.getAllKeys(function (error, result) {
+                storage.getAllKeys().then(function (result) {
                   expect(result).to.eql([])
                   done();
                 });
-              }, 2e3);
+              }, 1e3);
             });
           });
         });
@@ -211,7 +211,7 @@ describe('CookieStorage', function () {
 
           storage.setItem('test', { foo: 'bar' }, function () {
             storage.removeItem('test', function () {
-              storage.getAllKeys(function (error, result) {
+              storage.getAllKeys().then(function (result) {
                 expect(result).to.eql([]);
                 done();
               });
@@ -227,7 +227,7 @@ describe('CookieStorage', function () {
           var storage = new CookieStorage({ windowRef: window });
           storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
-          storage.getAllKeys(function (error, result) {
+          storage.getAllKeys().then(function (result) {
             expect(result).to.eql(['foo', 'bar']);
             done();
           });
@@ -258,7 +258,7 @@ describe('CookieStorage', function () {
           var storage = new CookieStorage({ cookies });
 
           storage.setItem('test', { foo: 'bar' }, function () {
-            storage.getAllKeys(function (error, result) {
+            storage.getAllKeys().then(function (result) {
               expect(result).to.eql(['test'])
               if (isSpy(cookies)) {
                 expect(cookies.set).to.have.been.called;
@@ -322,7 +322,7 @@ describe('CookieStorage', function () {
 
           storage.setItem('test', { foo: 'bar' }, function () {
             storage.removeItem('test', function () {
-              storage.getAllKeys(function (error, result) {
+              storage.getAllKeys().then(function (result) {
                 expect(result).to.eql([]);
                 if (isSpy(cookies)) {
                   expect(cookies.set).to.have.been.called;
@@ -340,7 +340,7 @@ describe('CookieStorage', function () {
           var storage = new CookieStorage({ cookies });
           storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
-          storage.getAllKeys(function (error, result) {
+          storage.getAllKeys().then(function (result) {
             expect(result).to.eql(['foo', 'bar']);
             if (isSpy(cookies)) {
               expect(cookies.set).to.have.been.called;
