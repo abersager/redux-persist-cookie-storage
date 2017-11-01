@@ -82,7 +82,7 @@ CookieStorage.prototype.getAllKeys = function (callback) {
   }
 
   if (callback) {
-      callback(result);
+      callback(null, result);
   }
   return Promise.resolve(result);
 }
