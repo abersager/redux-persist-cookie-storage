@@ -26,7 +26,9 @@ function CookieStorage(options) {
 
 CookieStorage.prototype.getItem = function (key, callback) {
   var item = this.cookies.get(this.keyPrefix + key) || 'null';
-  callback(null, item);
+  if (callback) {
+    callback(null, item);
+  }
   return Promise.resolve(item);
 }
 
@@ -54,7 +56,9 @@ CookieStorage.prototype.setItem = function (key, value, callback) {
       allKeys.push(key);
       this.cookies.set(this.indexKey, JSON.stringify(allKeys), indexOptions);
     }
-    callback(null);
+    if (callback) {
+      callback(null);
+    }
     return Promise.resolve(null);
   }.bind(this));
 }
@@ -68,7 +72,9 @@ CookieStorage.prototype.removeItem = function (key, callback) {
     });
 
     this.cookies.set(this.indexKey, JSON.stringify(allKeys));
-    callback(null);
+    if (callback) {
+      callback(null);
+    }
     return Promise.resolve(null);
   }.bind(this));
 }
