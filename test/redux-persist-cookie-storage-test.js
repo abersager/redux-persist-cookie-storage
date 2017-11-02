@@ -38,6 +38,21 @@ describe('CookieStorage', function () {
         }, { cookieJar: cookieJar });
       });
 
+      it('stores item as session cookies by default and returns a promise', function (done) {
+          var cookieJar = jsdom.createCookieJar();
+
+          withDOM(function (err, window) {
+              var storage = new CookieStorage({ windowRef: window, expiration: { default: null} });
+
+              storage.setItem('test', JSON.stringify({ foo: 'bar' }))
+                .then(function () {
+                  expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
+                  expect(cookieJar.store.idx.blank['/'].test.expires).to.eql('Infinity')
+                  done();
+                })
+          }, { cookieJar: cookieJar });
+      });
+
       it('stores an item as a cookie with expiration time', function (done) {
         var cookieJar = jsdom.createCookieJar();
 
@@ -179,6 +194,19 @@ describe('CookieStorage', function () {
         });
       });
 
+      it('gets an item stored as cookie and returns a promise', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('test', JSON.stringify({ foo: 'bar' }));
+
+          storage.getItem('test')
+            .then(function (result) {
+              expect(JSON.parse(result)).to.eql({ foo: 'bar' });
+              done();
+            })
+        });
+      });
+
       it('returns null when the item isn\'t available', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window });
@@ -201,6 +229,19 @@ describe('CookieStorage', function () {
             expect(storage.cookies.get('reduxPersist_test')).not.to.be.defined;
             done();
           });
+        });
+      });
+
+      it('removes the item\'s cookie and returns a promise', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('reduxPersist_test', JSON.stringify({ foo: 'bar' }));
+
+          storage.removeItem('test')
+            .then(function () {
+              expect(storage.cookies.get('reduxPersist_test')).not.to.be.defined;
+              done();
+            })
         });
       });
 
@@ -227,9 +268,21 @@ describe('CookieStorage', function () {
           var storage = new CookieStorage({ windowRef: window });
           storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
 
+          storage.getAllKeys(function (error, result) {
+              expect(result).to.eql(['foo', 'bar']);
+              done();
+          });
+        });
+      });
+
+      it('returns a list of persisted keys and returns a promise', function (done) {
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window });
+          storage.cookies.set('reduxPersistIndex', JSON.stringify(['foo', 'bar']));
+
           storage.getAllKeys().then(function (result) {
-            expect(result).to.eql(['foo', 'bar']);
-            done();
+              expect(result).to.eql(['foo', 'bar']);
+              done();
           });
         });
       });
