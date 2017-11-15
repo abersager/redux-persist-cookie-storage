@@ -23,12 +23,12 @@ function CookieStorage(options) {
     }
   }
 
-    if (options.domain) {
-      this.cookies.defaults.domain = options.domain;
-    }
-    if (options.path) {
-      this.cookies.defaults.path = options.path;
-    }
+  if (options.domain) {
+    this.cookies.defaults.domain = options.domain;
+  }
+  if (options.path) {
+    this.cookies.defaults.path = options.path;
+  }
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
@@ -75,7 +75,7 @@ CookieStorage.prototype.removeItem = function (key, callback) {
 
   return this.getAllKeys().then(function (allKeys) {
     allKeys = allKeys.filter(function (k) {
-        return k !== key;
+      return k !== key;
     });
 
     this.cookies.set(this.indexKey, JSON.stringify(allKeys));
@@ -95,7 +95,7 @@ CookieStorage.prototype.getAllKeys = function (callback) {
   }
 
   if (callback) {
-      callback(null, result);
+    callback(null, result);
   }
   return Promise.resolve(result);
 }
