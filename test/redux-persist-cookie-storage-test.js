@@ -38,6 +38,20 @@ describe('CookieStorage', function () {
         }, { cookieJar: cookieJar });
       });
 
+      it('stores item as session cookies by default with custom key prefix', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, keyPrefix: 'prefix', expiration: { default: null} });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('prefixtest'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].prefixtest.expires).to.eql('Infinity')
+            done();
+          });
+        }, { cookieJar: cookieJar });
+      });
+
       it('stores an item as a cookie with expiration time', function (done) {
         var cookieJar = jsdom.createCookieJar();
 
@@ -50,6 +64,27 @@ describe('CookieStorage', function () {
           storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
             expect(JSON.parse(storage.cookies.get('test'))).to.eql({ foo: 'bar' });
             expect(cookieJar.store.idx.blank['/'].test.expires).not.to.eql('Infinity')
+
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 2e3);
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item as a cookie with expiration time and custom key prefix', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, keyPrefix: 'prefix', expiration: {
+              'default': 1
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('prefixtest'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].prefixtest.expires).not.to.eql('Infinity')
 
             setTimeout(function() {
               expect(storage.cookies.get('test')).to.be.undefined;
