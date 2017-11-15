@@ -163,6 +163,40 @@ describe('CookieStorage', function () {
         }, { cookieJar: cookieJar });
       });
 
+      it('stores an item as a session cookie in specified domain', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+        var domain = '.example.com';
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({
+            windowRef: window,
+            domain: domain
+          });
+
+          storage.setItem('domain_test', 'testing1', function () {
+            expect(cookieJar.store.idx[domain.substr(1)]['/'].domain_test.domain).to.eql(domain.substr(1));
+            done();
+          });
+        }, { cookieJar: cookieJar, url: 'http://an.example.com' });
+      });
+
+      it('stores an item as a session cookie in specified path', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+        var path = '/123';
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({
+            windowRef: window,
+            path: path
+          });
+
+          storage.setItem('path_test', 'testing2', function () {
+            expect(cookieJar.store.idx.blank[path].path_test.path).to.eql(path);
+            done();
+          });
+        }, { cookieJar: cookieJar });
+      });
+
       it('updates the list of keys', function (done) {
         withDOM(function (err, window) {
           var storage = new CookieStorage({ windowRef: window });
