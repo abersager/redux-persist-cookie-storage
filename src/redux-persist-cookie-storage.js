@@ -32,7 +32,11 @@ function CookieStorage(options) {
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
-  callback(null, this.cookies.get(this.keyPrefix + key) || 'null');
+  var item = this.cookies.get(this.keyPrefix + key) || 'null';
+  if (callback) {
+    callback(null, item);
+  }
+  return Promise.resolve(item);
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
@@ -49,31 +53,36 @@ CookieStorage.prototype.setItem = function (key, value, callback) {
   this.cookies.set(this.keyPrefix + key, value, options);
 
   // Update key index
-
   var indexOptions = {};
   if (this.expiration.default) {
     indexOptions["expires"] = this.expiration.default;
   }
 
-  this.getAllKeys(function (error, allKeys) {
+  return this.getAllKeys().then(function(allKeys) {
     if (allKeys.indexOf(key) === -1) {
       allKeys.push(key);
       this.cookies.set(this.indexKey, JSON.stringify(allKeys), indexOptions);
     }
-    callback(null);
+    if (callback) {
+      callback(null);
+    }
+    return Promise.resolve(null);
   }.bind(this));
 }
 
 CookieStorage.prototype.removeItem = function (key, callback) {
   this.cookies.expire(this.keyPrefix + key);
 
-  this.getAllKeys(function (error, allKeys) {
+  return this.getAllKeys().then(function (allKeys) {
     allKeys = allKeys.filter(function (k) {
-      return k !== key;
+        return k !== key;
     });
 
     this.cookies.set(this.indexKey, JSON.stringify(allKeys));
-    callback(null);
+    if (callback) {
+      callback(null);
+    }
+    return Promise.resolve(null);
   }.bind(this));
 }
 
@@ -85,7 +94,10 @@ CookieStorage.prototype.getAllKeys = function (callback) {
     result = JSON.parse(cookie);
   }
 
-  callback(null, result);
+  if (callback) {
+      callback(null, result);
+  }
+  return Promise.resolve(result);
 }
 
 module.exports = CookieStorage
