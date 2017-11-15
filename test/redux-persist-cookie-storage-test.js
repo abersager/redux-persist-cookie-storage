@@ -38,6 +38,20 @@ describe('CookieStorage', function () {
         }, { cookieJar: cookieJar });
       });
 
+      it('stores item as session cookies by default with custom key prefix', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, keyPrefix: 'prefix', expiration: { default: null} });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('prefixtest'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].prefixtest.expires).to.eql('Infinity')
+            done();
+          });
+        }, { cookieJar: cookieJar });
+      });
+
       it('stores item as session cookies by default and returns a promise', function (done) {
           var cookieJar = jsdom.createCookieJar();
 
@@ -70,6 +84,27 @@ describe('CookieStorage', function () {
               expect(storage.cookies.get('test')).to.be.undefined;
               done();
             }, 1e3);
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item as a cookie with expiration time and custom key prefix', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({ windowRef: window, keyPrefix: 'prefix', expiration: {
+              'default': 1
+            }
+          });
+
+          storage.setItem('test', JSON.stringify({ foo: 'bar' }), function () {
+            expect(JSON.parse(storage.cookies.get('prefixtest'))).to.eql({ foo: 'bar' });
+            expect(cookieJar.store.idx.blank['/'].prefixtest.expires).not.to.eql('Infinity')
+
+            setTimeout(function() {
+              expect(storage.cookies.get('test')).to.be.undefined;
+              done();
+            }, 2e3);
           });
         }, { cookieJar: cookieJar });
       });
@@ -139,6 +174,40 @@ describe('CookieStorage', function () {
               expect(cookieJar.store.idx.blank['/'].timed.expires).not.to.eql('Infinity')
               done();
             });
+          });
+        }, { cookieJar: cookieJar });
+      });
+
+      it('stores an item as a session cookie in specified domain', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+        var domain = '.example.com';
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({
+            windowRef: window,
+            domain: domain
+          });
+
+          storage.setItem('domain_test', 'testing1', function () {
+            expect(cookieJar.store.idx[domain.substr(1)]['/'].domain_test.domain).to.eql(domain.substr(1));
+            done();
+          });
+        }, { cookieJar: cookieJar, url: 'http://an.example.com' });
+      });
+
+      it('stores an item as a session cookie in specified path', function (done) {
+        var cookieJar = jsdom.createCookieJar();
+        var path = '/123';
+
+        withDOM(function (err, window) {
+          var storage = new CookieStorage({
+            windowRef: window,
+            path: path
+          });
+
+          storage.setItem('path_test', 'testing2', function () {
+            expect(cookieJar.store.idx.blank[path].path_test.path).to.eql(path);
+            done();
           });
         }, { cookieJar: cookieJar });
       });

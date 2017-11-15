@@ -22,6 +22,13 @@ function CookieStorage(options) {
       this.cookies = new FakeCookieJar(options.cookies);
     }
   }
+
+    if (options.domain) {
+      this.cookies.defaults.domain = options.domain;
+    }
+    if (options.path) {
+      this.cookies.defaults.path = options.path;
+    }
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
