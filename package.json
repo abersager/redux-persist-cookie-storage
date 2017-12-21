@@ -16,10 +16,9 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
+    "cookies-js": "^1.2.3",
+    "cookies": "^0.7.1",
     "jsdom": "^9.5.0",
     "mocha": "^3.0.2"
-  },
-  "dependencies": {
-    "cookies-js": "^1.2.2"
   }
 }
