@@ -139,8 +139,6 @@ app.use(async (req, res) => {
 })
 ```
 
-N.B.: Custom expiration times are not supported server-side at the moment.
-
 ### Options
 
 ```js
