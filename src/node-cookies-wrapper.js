@@ -12,7 +12,11 @@ function NodeCookiesWrapper(cookies) {
 
 NodeCookiesWrapper.prototype.get = function (key) {
   key = encodeKey(key);
-  return decodeURIComponent(this.cookies.get(key));
+  var encodedValue = this.cookies.get(key);
+  if (encodedValue) {
+    return decodeURIComponent(encodedValue);
+  }
+  return undefined;
 }
 
 NodeCookiesWrapper.prototype.set = function (key, value, options) {
