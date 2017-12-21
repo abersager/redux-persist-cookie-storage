@@ -1,8 +1,7 @@
-var Cookies = require('cookies-js');
-var FakeCookieJar = require('./fake-cookie-jar');
-
-function CookieStorage(options) {
+function CookieStorage(cookies, options) {
   options = options || {};
+
+  this.cookies = cookies;
 
   this.keyPrefix = options.keyPrefix || '';
   this.indexKey = options.indexKey || 'reduxPersistIndex';
@@ -11,24 +10,7 @@ function CookieStorage(options) {
     this.expiration.default = null;
   }
 
-  if (options.windowRef) {
-    this.cookies = Cookies(options.windowRef);
-  } else if (typeof window !== 'undefined') {
-    this.cookies = Cookies;
-  } else if (options.cookies) {
-    if ('get' in options.cookies && 'set' in options.cookies && 'expire' in options.cookies) {
-      this.cookies = options.cookies
-    } else {
-      this.cookies = new FakeCookieJar(options.cookies);
-    }
-  }
-
-  if (options.domain) {
-    this.cookies.defaults.domain = options.domain;
-  }
-  if (options.path) {
-    this.cookies.defaults.path = options.path;
-  }
+  this.setCookieOptions = options.setCookieOptions;
 }
 
 CookieStorage.prototype.getItem = function (key, callback) {
@@ -40,7 +22,7 @@ CookieStorage.prototype.getItem = function (key, callback) {
 }
 
 CookieStorage.prototype.setItem = function (key, value, callback) {
-  var options = {};
+  var options = Object.assign({}, this.setCookieOptions);
 
   var expires = this.expiration.default;
   if (typeof this.expiration[key] !== 'undefined') {
@@ -53,7 +35,7 @@ CookieStorage.prototype.setItem = function (key, value, callback) {
   this.cookies.set(this.keyPrefix + key, value, options);
 
   // Update key index
-  var indexOptions = {};
+  var indexOptions = Object.assign({}, this.setCookieOptions);
   if (this.expiration.default) {
     indexOptions["expires"] = this.expiration.default;
   }
