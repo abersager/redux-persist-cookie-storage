@@ -1,6 +1,6 @@
 {
   "name": "redux-persist-cookie-storage",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "redux-persist storage adapter for cookies",
   "main": "index.js",
   "scripts": {
