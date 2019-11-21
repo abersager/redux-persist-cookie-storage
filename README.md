@@ -147,7 +147,7 @@ app.use(async (req, res) => {
 })
 ```
 
-**Note:** Cookies set with this approach will by default have an `httpOnly` flag preventing them to be modified by client scripts. However, when you use `CookieStorage` on the client-side too, you most likely want those cookies to be modified by `CookieStorage`. In this case, you can set `httpOnly` to false in the server-side `CookieStorage` options as follows:
+**Note:** Cookies set with this approach will by default have an `httpOnly` flag preventing them to be modified by client scripts. However, when you use `CookieStorage` on the client side too, you most likely want those cookies to be modified by `CookieStorage`. In this case, you can set `httpOnly` to false in the server-side `CookieStorage` options as follows:
 
 ```js
   const persistConfig = {
