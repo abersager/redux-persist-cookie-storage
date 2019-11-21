@@ -2,7 +2,7 @@
 
 [![Travis branch](https://img.shields.io/travis/abersager/redux-persist-cookie-storage/master.svg)](https://travis-ci.org/abersager/redux-persist-cookie-storage)
 
-[Redux Persist](https://github.com/rt2zz/redux-persist) storage adapter for cookies. Works in the browser and in Node.js with [cookie-parser](https://github.com/expressjs/cookie-parser) output. This makes it suitable for universal / isomorphic applications.
+[Redux Persist](https://github.com/rt2zz/redux-persist) storage adapter for cookies. Works in the browser (using [cookies-js](https://github.com/ScottHamper/Cookies)) and in Node.js (using [cookies](https://github.com/pillarjs/cookies)). This makes it suitable for universal / isomorphic applications.
 
 ## Installation
 
@@ -15,6 +15,7 @@
 #### Pure Cookie mode
 
 ```js
+import { createStore } from 'redux'
 import { persistStore, persistCombineReducers } from 'redux-persist'
 import { CookieStorage } from 'redux-persist-cookie-storage'
 import Cookies from 'cookies-js'
@@ -36,6 +37,7 @@ const persistor = persistStore(store, {})
 #### Bootstrap from preloaded state in window object
 
 ```js
+import { createStore } from 'redux'
 import { persistStore, persistCombineReducers } from 'redux-persist'
 import { CookieStorage } from 'redux-persist-cookie-storage'
 import Cookies from 'cookies-js'
@@ -58,8 +60,10 @@ const persistor = persistStore(store, window.PRELOADED_STATE)
 
 ### Server
 
+#### Read-only mode: Use getStoredState method
+
 ```js
-// Read-only mode: Use getStoredState method
+import { createStore } from 'redux'
 import { persistStore, getStoredState } from 'redux-persist'
 import { CookieStorage, NodeCookiesWrapper } from 'redux-persist-cookie-storage'
 import Cookies from 'cookies'
@@ -94,8 +98,12 @@ app.use(async (req, res) => {
   const store = createStore(rootReducer, preloadedState)
 })
 
+```
 
-// Read-write mode: Create persistor
+#### Read-write mode: Create persistor
+
+```js
+import { createStore } from 'redux'
 import { persistStore, getStoredState } from 'redux-persist'
 import { CookieStorage, NodeCookiesWrapper } from 'redux-persist-cookie-storage'
 import Cookies from 'cookies'
@@ -137,6 +145,20 @@ app.use(async (req, res) => {
 
   res.send(200, 'Done!')
 })
+```
+
+**Note:** Cookies set with this approach will by default have an `httpOnly` flag preventing them to be modified by client scripts. However, when you use `CookieStorage` on the client side too, you most likely want those cookies to be modified by `CookieStorage`. In this case, you can set `httpOnly` to false in the server-side `CookieStorage` options as follows:
+
+```js
+  const persistConfig = {
+    key: "root",
+    storage: new CookieStorage(cookieJar, {
+      setCookieOptions: {
+        httpOnly: false, // Allow modifications on the client side
+      }
+    }),
+    ...
+  }
 ```
 
 ### Options
